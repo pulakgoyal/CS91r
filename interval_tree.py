@@ -64,6 +64,7 @@ def virtual_disk_explorer():
 
 def main():
 
+	# Open blktrace output file
 	inptr = open(sys.argv[1], "r")
 
 	# Create histogram
