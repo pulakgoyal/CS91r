@@ -7,6 +7,13 @@ import mmap
 global t
 t = IntervalTree()
 
+# Partitions intervals
+def partition_overlapping_intervals(new_interval):
+	t.slice(new_interval[0])
+	t.slice(new_interval[1])
+	t.remove_envelop(new_interval[0], new_interval[1])
+	t.add(new_interval)
+
 
 def main():
 
