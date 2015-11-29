@@ -20,8 +20,11 @@ def main():
 	# Open blktrace output file
 	inptr = open(sys.argv[1], "r")
 
-	# Open disk
+	# Open disk for writing
 	disk = os.open(str(sys.argv[2]), os.O_CREAT | os.O_DIRECT | os.O_TRUNC | os.O_RDWR)
+
+	# Open disk for reading 
+
 
 	while(True):
 
@@ -29,15 +32,18 @@ def main():
 		line = inptr.readline()
 		if (line == ""):
 			break;
+
+		# Match on disk write
 		match = re.search(r"([D]\s*) ([W]) (\d+) \+ (\d+)", line)
 
 		if(match != None):
 
-			# Write data to disk
+			# Write data to disk (How do we know which physical sector to write to? We would normally rely on a 
+			# free list for that, but in this case we don't have to worry about it.)
 			buf = mmap.mmap(-1, 512 * int(match.group(4)))
-			s = 'a' * (512 * match.group(4))
+			s = 'a' * (512 * int(match.group(4)))
 			buf.write(s)
-			os.lseek(disk, int(match.group(3)), SEEK_SET)
+			os.lseek(disk, int(match.group(3)) * 512, os.SEEK_SET)
 			os.write(disk, buf)
 
 			# Construct new interval
@@ -49,11 +55,21 @@ def main():
 			else:
 				t.add(new_interval)
 
+		# Match on disk read
+		match = re.search(r"([D]\s*) ([R]) (\d+) \+ (\d+)", line)
+
+		if(match != None):
+
+			# Search interval tree for physical sectors (Data is immutable right? So virtual sectors might be on different physical sectors)
+			# You'll probably have to do multiple reads)
+			for interval in t.search(int(match.group(3)), int(match.group(3)) + int(match.group(4))):
+				# Read from each interval
+
+
 
 	inptr.close()
 	os.close(disk)
 
-	print t
 
 if __name__ == '__main__':
    main()
