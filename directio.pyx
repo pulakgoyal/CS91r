@@ -22,7 +22,7 @@ cdef class DirectFile:
             raise OSError(errno, 'Error opening')
         self.align = align
 
-    def __dealloc__(self):
+    def release(self):
         os.close(self.fd)
 
     def pread(self, offset, length):
