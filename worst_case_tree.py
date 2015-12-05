@@ -8,6 +8,12 @@ import random
 global t
 t = IntervalTree()
 
+# Constants
+SECTOR_SZ = 512
+NUM_SECTORS_PER_MB = 1954
+NUM_SECTORS_PER_GB = 1954000
+
+
 # Partitions intervals
 def partition_overlapping_intervals(new_interval):
 	t.slice(new_interval[0])
@@ -22,11 +28,11 @@ def main():
 	disk = directio.DirectFile(str(sys.argv[1]), 512)
 
 	# Write out 1 GB file in 1 MB increments
-	buf = 'a' * (1000448)
+	buf = 'a' * (NUM_SECTORS_PER_MB * SECTOR_SZ)
 	for i in range(0, 1000):
 
 		# Construct new interval
-		new_interval = Interval(1954*i, 1954*(i+1))
+		new_interval = Interval(i*NUM_SECTORS_PER_MB, (i+1)*NUM_SECTORS_PER_MB)
 
 		# Add new interval to tree
 		if (t.overlaps(new_interval[0], new_interval[1])):
@@ -35,14 +41,14 @@ def main():
 			t.add(new_interval)
 
 		# Write to disk
-		disk.pwrite(1000448*i, buf)
+		disk.pwrite(NUM_SECTORS_PER_MB * SECTOR_SZ * i, buf)
 
 	# Write to random sectors
-	buf = 'b' * (512)
-	for i in range(0,1000):
+	buf = 'b' * SECTOR_SZ
+	for i in range(0,int(sys.argv[2])):
 
 		# Choose random sector
-		n = random.randint(0, 1953999)
+		n = random.randint(0, NUM_SECTORS_PER_GB - 1)
 
 		# Construct new interval 
 		new_interval = Interval(n, n+1)
@@ -53,7 +59,7 @@ def main():
 		else:
 			t.add(new_interval)
 
-		disk.pwrite(512*n, buf)
+		disk.pwrite(SECTOR_SZ * n, buf)
 
 	# Calculate number of intervals in interval tree
 	num_intervals = len(list(t))
@@ -62,17 +68,13 @@ def main():
 	# Read 1 GB file in 1 MB increments
 	for i in range(0, 1000):
 
-		interval_list = t.search(1954*i, 1954*(i+1))
+		interval_list = t.search(NUM_SECTORS_PER_MB * i, NUM_SECTORS_PER_MB * (i+1))
 
 		for interval in interval_list:
-			start = interval[0]
-			if (start < 1954*i):
-				start = 1954*i
-			end = interval[1]
-			if (end > 1954(i+1)):
-				end = 1954(i+1)
+			start = max(interval[0], NUM_SECTORS_PER_MB * i)
+			end = min(interval[1], NUM_SECTORS_PER_MB * (i+1))
 			length = end - start
-			disk.pread(start*512, length * 512)
+			disk.pread(start * SECTOR_SZ, length * SECTOR_SZ)
 
 	disk.release()
 

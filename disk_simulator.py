@@ -72,8 +72,9 @@ def main():
 			time_list_write.append(end - start)
 			counter += end - start
 			for interval in interval_list:
-				start = interval[0]
-				length = interval[1] - interval[0]
+				start = max(interval[0], int(match.group(3)))
+				end = min(interval[1], int(match,group(3)) + int(match.group(4)))
+				length = end - start
 				disk.pread(start*512, length * 512)
 
 	inptr.close() 
