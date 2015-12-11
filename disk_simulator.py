@@ -6,6 +6,7 @@ import mmap
 import directio
 import time
 import numpy 
+import numpy
 
 global t
 t = IntervalTree()
@@ -57,7 +58,7 @@ def main():
 			else:
 				t.add(new_interval)
 			end = time.time()
-			time_list_read.append(end - start)
+			time_list_write.append(end - start)
 			counter += end - start
 
 		# Match on disk read
@@ -69,11 +70,11 @@ def main():
 			start = time.time()
 			interval_list = t.search(int(match.group(3)), int(match.group(3)) + int(match.group(4)))
 			end = time.time()
-			time_list_write.append(end - start)
+			time_list_read.append(end - start)
 			counter += end - start
 			for interval in interval_list:
 				start = max(interval[0], int(match.group(3)))
-				end = min(interval[1], int(match,group(3)) + int(match.group(4)))
+				end = min(interval[1], int(match.group(3)) + int(match.group(4)))
 				length = end - start
 				disk.pread(start*512, length * 512)
 
@@ -87,7 +88,6 @@ def main():
 	hist1 = numpy.histogram(time_list_read, bins=50)
 	f1.write(str(hist1))
 	f1.close
-
 
 	f2 = open("write_distribution.txt", "a")
 	f2.write("time_list_write for " + str(sys.argv[1]) + "\n")

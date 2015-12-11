@@ -105,6 +105,7 @@ def main():
 
 	inptr.close()
 
+    print str(sys.argv[1]) + "\n"
 	print hist
 	print "There were these many overwrites: " + str(overwrites)
 	print "There were these many dead sectors: " + str(dead_sectors)
